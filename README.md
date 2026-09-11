@@ -1,6 +1,5 @@
-# PromptBuilder
-
-# Prompt Struct Tool
+#
+# Prompt Builder - A Prompt Struct Tool
 
 A lightweight Windows desktop app that helps everyday users turn a rough idea into a clear, well-structured AI prompt — and automatically strips out sensitive personal data before you paste it into ChatGPT, Claude, or any other AI tool.
 
