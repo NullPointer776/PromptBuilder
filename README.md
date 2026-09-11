@@ -27,7 +27,6 @@ Once your draft is ready, move to the next step and the app scans it for:
 |---|---|
 | Names | Alice, Bob, Charlie, Dana... |
 | Emails | test@test.com |
-| Phone numbers | 021 123 4567 (NZ format) |
 | Bank account numbers | 12-3456-7890123-00 |
 | IP addresses | 123.123.123.123 |
 | Passwords | ******** |
