@@ -1,4 +1,3 @@
-using System;
 using System.Collections.Generic;
 
 namespace PromptStructTool.Models
@@ -8,10 +7,6 @@ namespace PromptStructTool.Models
     /// </summary>
     public class PromptData
     {
-        public string Id { get; set; } = Guid.NewGuid().ToString();
-        public DateTime CreatedAt { get; set; } = DateTime.Now;
-        public DateTime ModifiedAt { get; set; } = DateTime.Now;
-        
         // Original fields
         public string Task { get; set; } = string.Empty;
         public string Context { get; set; } = string.Empty;
@@ -33,9 +28,6 @@ namespace PromptStructTool.Models
         {
             return new PromptData
             {
-                Id = this.Id,
-                CreatedAt = this.CreatedAt,
-                ModifiedAt = DateTime.Now,
                 Task = this.Task,
                 Context = this.Context,
                 OutputFormat = this.OutputFormat,
@@ -56,6 +48,5 @@ namespace PromptStructTool.Models
         public string Category { get; set; } = string.Empty;
         public string Value { get; set; } = string.Empty;
         public int MatchCount { get; set; } = 1;
-        public List<int> Positions { get; set; } = new(); // Positions in text where this item appears
     }
 }

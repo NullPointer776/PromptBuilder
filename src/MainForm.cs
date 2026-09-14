@@ -102,90 +102,72 @@ namespace PromptStructTool
 
         private void btnTaskExample_Click(object? sender, EventArgs e)
         {
-            string example = promptService.GetExample("Task");
-            ShowExampleDialog("Task Example", example, txtTask);
+            ShowTemplateMenu(btnTaskExample, "Task", txtTask);
         }
 
         private void btnContextExample_Click(object? sender, EventArgs e)
         {
-            string example = promptService.GetExample("Context");
-            ShowExampleDialog("Context Example", example, txtContext);
+            ShowTemplateMenu(btnContextExample, "Context", txtContext);
         }
 
         private void btnOutputExample_Click(object? sender, EventArgs e)
         {
-            string example = promptService.GetExample("OutputFormat");
-            ShowExampleDialog("Output Format Example", example, txtOutputFormat);
+            ShowTemplateMenu(btnOutputExample, "OutputFormat", txtOutputFormat);
         }
 
         private void btnConstraintsExample_Click(object? sender, EventArgs e)
         {
-            string example = promptService.GetExample("Constraints");
-            ShowExampleDialog("Constraints Example", example, txtConstraints);
+            ShowTemplateMenu(btnConstraintsExample, "Constraints", txtConstraints);
         }
 
-        private void ShowExampleDialog(string title, string example, TextBox targetField)
+        /// <summary>
+        /// Shows a dropdown of templates for the given field and inserts the
+        /// selected template directly into the target text box.
+        /// </summary>
+        private void ShowTemplateMenu(Control anchor, string fieldName, TextBox targetField)
         {
-            if (string.IsNullOrEmpty(example)) return;
+            var templates = promptService.GetTemplates(fieldName);
+            if (templates.Count == 0) return;
 
-            var dlg = new Form
+            var menu = new ContextMenuStrip
             {
-                Text = title,
-                Size = new Size(600, 300),
-                StartPosition = FormStartPosition.CenterParent,
-                FormBorderStyle = FormBorderStyle.FixedDialog,
-                MaximizeBox = false,
-                MinimizeBox = false,
-                Font = new Font("Segoe UI", 10)
+                Font = new Font("Segoe UI", 9)
             };
 
-            var txtExample = new RichTextBox
+            foreach (var template in templates)
             {
-                Text = example,
-                Dock = DockStyle.Fill,
-                ReadOnly = true,
-                BackColor = Color.White,
-                Margin = new Padding(5)
-            };
+                var item = new ToolStripMenuItem(template.Key)
+                {
+                    Tag = template.Value,
+                    ToolTipText = template.Value
+                };
+                item.Click += (s, e) =>
+                {
+                    if (s is ToolStripMenuItem clicked && clicked.Tag is string value)
+                    {
+                        InsertTemplate(targetField, value);
+                    }
+                };
+                menu.Items.Add(item);
+            }
 
-            var btnCopy = new Button
-            {
-                Text = "Copy",
-                Dock = DockStyle.Bottom,
-                Height = 35,
-                BackColor = Color.FromArgb(33, 150, 243),
-                ForeColor = Color.White
-            };
+            menu.Show(anchor, new Point(0, anchor.Height));
+        }
 
-            btnCopy.Click += (s, e) =>
-            {
-                Clipboard.SetText(example);
-                MessageBox.Show("Copied to clipboard!", "Success", MessageBoxButtons.OK, MessageBoxIcon.Information);
-            };
+        /// <summary>
+        /// Inserts a template into the target text box, replacing any existing
+        /// content (with undo support) and placing the caret at the end.
+        /// </summary>
+        private void InsertTemplate(TextBox targetField, string template)
+        {
+            if (string.IsNullOrEmpty(template)) return;
 
-            var btnInsert = new Button
-            {
-                Text = "Insert",
-                Dock = DockStyle.Bottom,
-                Height = 35,
-                BackColor = Color.FromArgb(76, 175, 80),
-                ForeColor = Color.White
-            };
+            RecordState();
 
-            btnInsert.Click += (s, e) =>
-            {
-                targetField.Text = example;
-                dlg.Close();
-            };
-
-            var panel = new Panel { Dock = DockStyle.Bottom, Height = 40 };
-            panel.Controls.Add(btnInsert);
-            panel.Controls.Add(btnCopy);
-
-            dlg.Controls.Add(panel);
-            dlg.Controls.Add(txtExample);
-
-            dlg.ShowDialog(this);
+            targetField.Text = template;
+            targetField.SelectionStart = targetField.TextLength;
+            targetField.SelectionLength = 0;
+            targetField.Focus();
         }
 
         private void linkWritingTip_LinkClicked(object? sender, LinkLabelLinkClickedEventArgs e)
@@ -368,7 +350,7 @@ namespace PromptStructTool
 
             if (dlg.ShowDialog(this) == DialogResult.OK)
             {
-                string category = cb.SelectedItem.ToString() ?? "Other";
+                string category = cb.SelectedItem?.ToString() ?? "Other";
                 var item = new Models.SensitiveItem { Category = category, Value = selectedValue };
                 currentDetectedItems.Add(item);
                 UpdateDetectedItemsList(currentDetectedItems);
@@ -671,309 +653,6 @@ namespace PromptStructTool
                 MessageBoxButtons.OK,
                 MessageBoxIcon.Information
             );
-        }
-    }
-}
-            lstDetectedItems.Items.Clear();
-            ClearAllHighlights(rtbSensitiveCheck);
-
-            string text = rtbSensitiveCheck.Text;
-            if (string.IsNullOrEmpty(text))
-            {
-                MessageBox.Show("No text to scan.", "Info", MessageBoxButtons.OK, MessageBoxIcon.Information);
-                return;
-            }
-
-            // Email
-            foreach (Match m in Regex.Matches(text, @"\b[\w.-]+@[\w.-]+\.[A-Za-z]{2,6}\b"))
-            {
-                AddDetected("Email", m.Value);
-            }
-
-            // IPv4
-            foreach (Match m in Regex.Matches(text, @"\b(?:\d{1,3}\.){3}\d{1,3}\b"))
-            {
-                AddDetected("IP Address", m.Value);
-            }
-
-            // Phone (common international-ish patterns)
-            foreach (Match m in Regex.Matches(text, @"\b(?:\+?\d{1,3}[ -]?)?(?:\(\d+\)[ -]?)?\d{2,4}[ -]?\d{3,4}[ -]?\d{3,4}\b"))
-            {
-                // crude filter to avoid matching years
-                if (m.Value.Length >= 7)
-                    AddDetected("Phone", m.Value);
-            }
-
-            // API keys / tokens (>=20 alnum with optional prefix sk- key-)
-            foreach (Match m in Regex.Matches(text, @"\b(?:sk-|key-)?[A-Za-z0-9\-_=]{20,}\b"))
-            {
-                if (m.Value.Length >= 20)
-                    AddDetected("API Key", m.Value);
-            }
-
-            // Bank accounts / card numbers (12-19 digits in groups)
-            foreach (Match m in Regex.Matches(text, @"\b(?:\d[ -]?){12,19}\b"))
-            {
-                string digitsOnly = Regex.Replace(m.Value, "[^0-9]", "");
-                if (digitsOnly.Length >= 12 && digitsOnly.Length <= 19)
-                    AddDetected("Bank Account", m.Value);
-            }
-
-            // Passwords labeled explicitly
-            foreach (Match m in Regex.Matches(text, @"(?i)(?:password|pwd|pass)\s*[:=]\s*(\S+)") )
-            {
-                string val = m.Groups[1].Value;
-                if (!string.IsNullOrEmpty(val))
-                    AddDetected("Password", val);
-            }
-
-            // Simple personal name heuristic: look for phrases like "my name is X" or nearby 'name'
-            foreach (Match m in Regex.Matches(text, @"(?i)(?:my name is|i am|name is|name:)\s*([A-Z][a-z]{1,24})"))
-            {
-                AddDetected("Name", m.Groups[1].Value);
-            }
-
-            // Also check for common names anywhere (best-effort)
-            string[] common = new[] { "John", "Mary", "Alice", "Bob", "Charlie", "Dana" };
-            foreach (string n in common)
-            {
-                foreach (Match m in Regex.Matches(text, $"\\b{Regex.Escape(n)}\\b"))
-                {
-                    AddDetected("Name", m.Value);
-                }
-            }
-
-            // Deduplicate list
-            var unique = new Dictionary<string, string>();
-            foreach (DetectedItem it in detectedItems)
-            {
-                if (!unique.ContainsKey(it.Value)) unique[it.Value] = it.Category;
-            }
-            detectedItems.Clear();
-            foreach (var kv in unique) detectedItems.Add(new DetectedItem { Category = kv.Value, Value = kv.Key });
-
-            // Highlight in RichTextBox and populate list
-            foreach (var item in detectedItems)
-            {
-                HighlightAllOccurrences(rtbSensitiveCheck, item.Value, Color.Yellow);
-                lstDetectedItems.Items.Add($"{item.Category}: {item.Value}");
-            }
-
-            if (detectedItems.Count == 0)
-            {
-                MessageBox.Show("No likely sensitive items were detected. You can still mark text manually.", "Done", MessageBoxButtons.OK, MessageBoxIcon.Information);
-            }
-            else
-            {
-                MessageBox.Show($"Detected {detectedItems.Count} distinct items. Review them in the list on the right.", "Done", MessageBoxButtons.OK, MessageBoxIcon.Information);
-            }
-        }
-
-        // Helper to add to internal detected list
-        private void AddDetected(string category, string value)
-        {
-            if (string.IsNullOrWhiteSpace(value)) return;
-            detectedItems.Add(new DetectedItem { Category = category, Value = value });
-        }
-
-        // Highlight all occurrences of a value in a RichTextBox
-        private void HighlightAllOccurrences(RichTextBox rtb, string value, Color color)
-        {
-            int start = 0;
-            while (start < rtb.TextLength)
-            {
-                int idx = rtb.Find(value, start, RichTextBoxFinds.None);
-                if (idx == -1) break;
-                rtb.Select(idx, value.Length);
-                rtb.SelectionBackColor = color;
-                start = idx + value.Length;
-            }
-            rtb.SelectionStart = rtb.TextLength;
-            rtb.SelectionLength = 0;
-            rtb.SelectionBackColor = Color.White;
-        }
-
-        // Remove all highlights (resets background)
-        private void ClearAllHighlights(RichTextBox rtb)
-        {
-            int selStart = rtb.SelectionStart;
-            int selLen = rtb.SelectionLength;
-            rtb.SelectAll();
-            rtb.SelectionBackColor = Color.White;
-            rtb.DeselectAll();
-            rtb.SelectionStart = selStart;
-            rtb.SelectionLength = selLen;
-        }
-
-        // Allow user to mark current selection as sensitive
-        private void btnMarkSensitive_Click(object? sender, EventArgs e)
-        {
-            if (rtbSensitiveCheck.SelectionLength <= 0)
-            {
-                MessageBox.Show("Select some text first to mark as sensitive.", "Info", MessageBoxButtons.OK, MessageBoxIcon.Information);
-                return;
-            }
-
-            string val = rtbSensitiveCheck.SelectedText;
-            // Ask category
-            using var dlg = new Form();
-            dlg.StartPosition = FormStartPosition.CenterParent;
-            dlg.Size = new Size(350, 160);
-            dlg.Text = "Mark as Sensitive";
-            var cb = new ComboBox { Left = 10, Top = 10, Width = 300, DropDownStyle = ComboBoxStyle.DropDownList };
-            cb.Items.AddRange(new object[] { "Name", "Email", "Phone", "IP Address", "Bank Account", "Password", "API Key", "Address", "Other" });
-            cb.SelectedIndex = 0;
-            var btnOk = new Button { Text = "OK", Left = 60, Top = 60, DialogResult = DialogResult.OK };
-            var btnCancel = new Button { Text = "Cancel", Left = 160, Top = 60, DialogResult = DialogResult.Cancel };
-            dlg.Controls.Add(cb); dlg.Controls.Add(btnOk); dlg.Controls.Add(btnCancel);
-            if (dlg.ShowDialog(this) == DialogResult.OK)
-            {
-                string cat = cb.SelectedItem.ToString() ?? "Other";
-                AddDetected(cat, val);
-                lstDetectedItems.Items.Add($"{cat}: {val}");
-                HighlightAllOccurrences(rtbSensitiveCheck, val, Color.Yellow);
-            }
-        }
-
-        // Auto-replace all detected items using the mapping rules
-        private void btnAutoReplace_Click(object? sender, EventArgs e)
-        {
-            if (detectedItems.Count == 0)
-            {
-                MessageBox.Show("No detected items to replace. Run detection first.", "Info", MessageBoxButtons.OK, MessageBoxIcon.Information);
-                return;
-            }
-
-            // Build mapping for each unique detected value
-            foreach (var it in detectedItems)
-            {
-                if (replacementMap.ContainsKey(it.Value)) continue;
-                string replacement = SuggestReplacement(it.Category, it.Value);
-                replacementMap[it.Value] = replacement;
-            }
-
-            // Perform replacements consistently using Regex.Escape to match literals
-            string text = rtbSensitiveCheck.Text;
-            foreach (var kv in replacementMap)
-            {
-                text = Regex.Replace(text, Regex.Escape(kv.Key), kv.Value);
-            }
-            rtbSensitiveCheck.Text = text;
-
-            // Re-run highlight briefly to show replaced text
-            ClearAllHighlights(rtbSensitiveCheck);
-            MessageBox.Show("Auto-replace completed. Review the edited text.", "Done", MessageBoxButtons.OK, MessageBoxIcon.Information);
-        }
-
-        // Suggest replacement values based on category
-        private string SuggestReplacement(string category, string original)
-        {
-            return category switch
-            {
-                "Name" => GetOrAllocateName(original),
-                "Email" => GetOrAllocateEmail(original),
-                "Phone" => "021 123 4567",
-                "Bank Account" => "12-3456-7890123-00",
-                "IP Address" => GetNextFakeIp(),
-                "Password" => "********",
-                "API Key" => "sk-test-XXXXXXXXXXXXXXXXXXXX",
-                "Address" => "123 Queen Street, Auckland 1010, New Zealand",
-                _ => "[REDACTED]",
-            };
-        }
-
-        private string GetOrAllocateName(string original)
-        {
-            if (replacementMap.TryGetValue(original, out var r)) return r;
-            string name = namePool[namePoolIndex % namePool.Count];
-            namePoolIndex++;
-            replacementMap[original] = name;
-            return name;
-        }
-
-        private string GetOrAllocateEmail(string original)
-        {
-            if (replacementMap.TryGetValue(original, out var r)) return r;
-            string em = $"test{emailCounter}@test.com";
-            emailCounter++;
-            replacementMap[original] = em;
-            return em;
-        }
-
-        private string GetNextFakeIp()
-        {
-            ipPoolLastOctet++;
-            return $"123.123.123.{ipPoolLastOctet}";
-        }
-
-        // Manual review: when user selects an item in list, show suggestion and allow edit/accept/skip
-        private void btnManualReview_Click(object? sender, EventArgs e)
-        {
-            if (lstDetectedItems.SelectedIndex == -1)
-            {
-                MessageBox.Show("Select an item from the detected list first.", "Info", MessageBoxButtons.OK, MessageBoxIcon.Information);
-                return;
-            }
-
-            string selected = lstDetectedItems.SelectedItem!.ToString() ?? string.Empty;
-            int idx = selected.IndexOf(": ");
-            if (idx == -1) return;
-            string category = selected.Substring(0, idx);
-            string value = selected.Substring(idx + 2);
-
-            string suggestion = SuggestReplacement(category, value);
-
-            using var dlg = new Form();
-            dlg.StartPosition = FormStartPosition.CenterParent;
-            dlg.Size = new Size(500, 220);
-            dlg.Text = "Manual review";
-
-            var lblOrig = new Label { Left = 10, Top = 10, Width = 460, Text = $"Original ({category}): {value}" };
-            var lblSug = new Label { Left = 10, Top = 40, Width = 100, Text = "Suggestion:" };
-            var txtSug = new TextBox { Left = 10, Top = 60, Width = 460, Text = suggestion };
-            var btnAccept = new Button { Text = "Accept & Replace", Left = 80, Top = 100, DialogResult = DialogResult.OK };
-            var btnSkip = new Button { Text = "Skip", Left = 220, Top = 100, DialogResult = DialogResult.Cancel };
-
-            dlg.Controls.Add(lblOrig); dlg.Controls.Add(lblSug); dlg.Controls.Add(txtSug); dlg.Controls.Add(btnAccept); dlg.Controls.Add(btnSkip);
-
-            if (dlg.ShowDialog(this) == DialogResult.OK)
-            {
-                // update mapping and replace all occurrences of value
-                replacementMap[value] = txtSug.Text;
-                rtbSensitiveCheck.Text = Regex.Replace(rtbSensitiveCheck.Text, Regex.Escape(value), txtSug.Text);
-                MessageBox.Show("Replaced all occurrences.", "Done", MessageBoxButtons.OK, MessageBoxIcon.Information);
-            }
-        }
-
-        // When user clicks an item in the list, locate it in the text
-        private void lstDetectedItems_DoubleClick(object? sender, EventArgs e)
-        {
-            if (lstDetectedItems.SelectedIndex == -1) return;
-            string selected = lstDetectedItems.SelectedItem!.ToString() ?? string.Empty;
-            int idx = selected.IndexOf(": ");
-            if (idx == -1) return;
-            string value = selected.Substring(idx + 2);
-            int pos = rtbSensitiveCheck.Find(value);
-            if (pos >= 0)
-            {
-                rtbSensitiveCheck.Select(pos, value.Length);
-                rtbSensitiveCheck.ScrollToCaret();
-            }
-        }
-
-        // Open find & replace dialog for active RichTextBox
-        private void btnFindReplace_Click(object? sender, EventArgs e)
-        {
-            RichTextBox target = tabControl1.SelectedTab == tabPrompt ? rtbDraft : rtbSensitiveCheck;
-            var dlg = new FindReplaceForm(target);
-            dlg.Show(this);
-        }
-
-        // Copy final sanitized text
-        private void btnCopyFinal_Click(object? sender, EventArgs e)
-        {
-            Clipboard.SetText(rtbSensitiveCheck.Text);
-            MessageBox.Show("Sanitized text copied to clipboard.", "Copied", MessageBoxButtons.OK, MessageBoxIcon.Information);
         }
     }
 }

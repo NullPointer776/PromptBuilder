@@ -22,7 +22,6 @@ namespace PromptStructTool
             string find = txtFind.Text;
             if (string.IsNullOrEmpty(find)) return;
 
-            var opts = chkCase.Checked ? RichTextBoxFinds.None : RichTextBoxFinds.MatchCase; // reversed intentionally? use MatchCase when case sensitive
             // Use simple find that respects case if requested
             StringComparison comp = chkCase.Checked ? StringComparison.Ordinal : StringComparison.OrdinalIgnoreCase;
             int pos = target.Text.IndexOf(find, lastFindPos, comp);

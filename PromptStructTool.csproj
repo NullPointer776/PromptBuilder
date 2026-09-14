@@ -8,4 +8,19 @@
     <ImplicitUsings>enable</ImplicitUsings>
   </PropertyGroup>
 
+  <ItemGroup>
+    <Compile Update="src\MainForm.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Update="src\MainForm.Designer.cs">
+      <DependentUpon>MainForm.cs</DependentUpon>
+    </Compile>
+    <Compile Update="src\FindReplaceForm.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Update="src\FindReplaceForm.Designer.cs">
+      <DependentUpon>FindReplaceForm.cs</DependentUpon>
+    </Compile>
+  </ItemGroup>
+
 </Project>

@@ -58,8 +58,7 @@ namespace PromptStructTool.Services
                 results.Add(new SensitiveItem
                 {
                     Category = "Email",
-                    Value = m.Value,
-                    Positions = new List<int> { m.Index }
+                    Value = m.Value
                 });
             }
         }
@@ -72,8 +71,7 @@ namespace PromptStructTool.Services
                 results.Add(new SensitiveItem
                 {
                     Category = "IP Address",
-                    Value = m.Value,
-                    Positions = new List<int> { m.Index }
+                    Value = m.Value
                 });
             }
         }
@@ -88,8 +86,7 @@ namespace PromptStructTool.Services
                     results.Add(new SensitiveItem
                     {
                         Category = "Phone",
-                        Value = m.Value,
-                        Positions = new List<int> { m.Index }
+                        Value = m.Value
                     });
                 }
             }
@@ -105,8 +102,7 @@ namespace PromptStructTool.Services
                     results.Add(new SensitiveItem
                     {
                         Category = "API Key",
-                        Value = m.Value,
-                        Positions = new List<int> { m.Index }
+                        Value = m.Value
                     });
                 }
             }
@@ -123,8 +119,7 @@ namespace PromptStructTool.Services
                     results.Add(new SensitiveItem
                     {
                         Category = "Bank Account",
-                        Value = m.Value,
-                        Positions = new List<int> { m.Index }
+                        Value = m.Value
                     });
                 }
             }
@@ -141,8 +136,7 @@ namespace PromptStructTool.Services
                     results.Add(new SensitiveItem
                     {
                         Category = "Password",
-                        Value = val,
-                        Positions = new List<int> { m.Index }
+                        Value = val
                     });
                 }
             }
@@ -157,8 +151,7 @@ namespace PromptStructTool.Services
                 results.Add(new SensitiveItem
                 {
                     Category = "Name",
-                    Value = m.Groups[1].Value,
-                    Positions = new List<int> { m.Index }
+                    Value = m.Groups[1].Value
                 });
             }
 
@@ -171,8 +164,7 @@ namespace PromptStructTool.Services
                     results.Add(new SensitiveItem
                     {
                         Category = "Name",
-                        Value = m.Value,
-                        Positions = new List<int> { m.Index }
+                        Value = m.Value
                     });
                 }
             }
@@ -188,7 +180,6 @@ namespace PromptStructTool.Services
                 if (dict.TryGetValue(key, out var existing))
                 {
                     existing.MatchCount++;
-                    existing.Positions.Add(item.Positions[0]);
                 }
                 else
                 {

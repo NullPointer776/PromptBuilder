@@ -215,7 +215,7 @@ namespace PromptStructTool
             this.btnConstraintsExample.Name = "btnConstraintsExample";
             this.btnConstraintsExample.Size = new System.Drawing.Size(140, 24);
             this.btnConstraintsExample.TabIndex = 11;
-            this.btnConstraintsExample.Text = "Insert Constraints Example";
+            this.btnConstraintsExample.Text = "Insert Constraints \u25BC";
             this.btnConstraintsExample.UseVisualStyleBackColor = true;
             this.btnConstraintsExample.Click += new System.EventHandler(this.btnConstraintsExample_Click);
             // 
@@ -225,7 +225,7 @@ namespace PromptStructTool
             this.btnOutputExample.Name = "btnOutputExample";
             this.btnOutputExample.Size = new System.Drawing.Size(140, 24);
             this.btnOutputExample.TabIndex = 10;
-            this.btnOutputExample.Text = "Insert Output Example";
+            this.btnOutputExample.Text = "Insert Output Format \u25BC";
             this.btnOutputExample.UseVisualStyleBackColor = true;
             this.btnOutputExample.Click += new System.EventHandler(this.btnOutputExample_Click);
             // 
@@ -235,7 +235,7 @@ namespace PromptStructTool
             this.btnContextExample.Name = "btnContextExample";
             this.btnContextExample.Size = new System.Drawing.Size(140, 24);
             this.btnContextExample.TabIndex = 9;
-            this.btnContextExample.Text = "Insert Context Example";
+            this.btnContextExample.Text = "Insert Context \u25BC";
             this.btnContextExample.UseVisualStyleBackColor = true;
             this.btnContextExample.Click += new System.EventHandler(this.btnContextExample_Click);
             // 
@@ -245,7 +245,7 @@ namespace PromptStructTool
             this.btnTaskExample.Name = "btnTaskExample";
             this.btnTaskExample.Size = new System.Drawing.Size(140, 24);
             this.btnTaskExample.TabIndex = 8;
-            this.btnTaskExample.Text = "Insert Task Example";
+            this.btnTaskExample.Text = "Insert Task \u25BC";
             this.btnTaskExample.UseVisualStyleBackColor = true;
             this.btnTaskExample.Click += new System.EventHandler(this.btnTaskExample_Click);
             // 
